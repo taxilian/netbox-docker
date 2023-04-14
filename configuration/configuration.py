@@ -103,6 +103,32 @@ REDIS = {
     },
 }
 
+
+# To use Redis Sentinel for tasks, set REDIS_TASK_SENTINELS to a list of Sentinel hosts. The format is a space-separated list of
+# host:port pairs. For example:
+#  REDIS_TASK_SENTINELS = 'sentinel1.example.com:26379 sentinel2.example.com:26379'
+if 'REDIS_TASK_SENTINELS' in environ:
+    sentinels = _environ_get_and_map('REDIS_TASK_SENTINELS', None, _AS_LIST)
+    
+    REDIS['tasks']['SENTINELS'] = [(i[0], int(i[1])) for i in [s.split(':') for s in sentinels]]
+    del REDIS['tasks']['HOST']
+    del REDIS['tasks']['PORT']
+    REDIS['tasks']['SENTINEL_SERVICE'] = environ.get('REDIS_TASK_SENTINEL_SERVICE', 'mymaster')
+    REDIS['tasks']['SENTINEL_TIMEOUT'] = _environ_get_and_map('REDIS_TASK_SENTINEL_TIMEOUT', 10, _AS_INT)
+
+# To use Redis Sentinel for caching, set REDIS_CACHE_SENTINELS to a list of Sentinel hosts. The format is a space-separated list of
+# host:port pairs. For example:
+#  REDIS_CACHE_SENTINELS = 'sentinel1.example.com:26379 sentinel2.example.com:26379'
+if 'REDIS_CACHE_SENTINELS' in environ:
+    sentinels = _environ_get_and_map('REDIS_CACHE_SENTINELS', None, _AS_LIST)
+    
+    REDIS['caching']['SENTINELS'] = [(i[0], int(i[1])) for i in [s.split(':') for s in sentinels]]
+    del REDIS['caching']['HOST']
+    del REDIS['caching']['PORT']
+    REDIS['caching']['SENTINEL_SERVICE'] = environ.get('REDIS_CACHE_SENTINEL_SERVICE', 'mymaster')
+    REDIS['caching']['SENTINEL_TIMEOUT'] = _environ_get_and_map('REDIS_CACHE_SENTINEL_TIMEOUT', 10, _AS_INT)
+    
+
 # This key is used for secure generation of random numbers and strings. It must never be exposed outside of this file.
 # For optimal security, SECRET_KEY should be at least 50 characters in length and contain a mix of letters, numbers, and
 # symbols. NetBox will not run without this defined. For more information, see
